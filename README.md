@@ -1,24 +1,45 @@
-# Dr-Maseer-Baryal-Safi-App
-Sign off and commit changes
+name: Build Nangarhar APK
 
-X
+on:
+  workflow_dispatch:
 
-There was an error committing your changes: A file with the same name already exists. Please choose a different name and try again.
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-Commit message
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
 
-Add APK Build Workflow
+      - name: Extract ZIP
+        run: unzip Nangarhar.zip -d extracted
 
-Extended description
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
 
-Add APK Build Workflow
+      - name: Setup Android
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platforms;android-35
+            build-tools;35.0.0
 
-You are signing off on this commit as maseerbaryal2020@gmail.com
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
 
-Commit directly to the main branch
+      - name: Build APK
+        run: |
+          PROJECT_DIR=$(dirname "$(find extracted -name settings.gradle.kts -print -quit)")
+          cd "$PROJECT_DIR"
+          gradle assembleDebug
 
-Create a new branch for this commit and start a pull request Learn more about pull requests
-
-Cancel
-
-Sign off and commit changes
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nangarhar-APK
+          path: extracted/**/app/build/outputs/apk/debug/*.apk

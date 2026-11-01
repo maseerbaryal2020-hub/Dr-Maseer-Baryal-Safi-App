@@ -2,7 +2,8 @@ name: Dr Maseer Baryal Safi Official App
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -14,47 +15,63 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Java 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"         
-          - name: Install Android SDK packages
-          
+          java-version: "17"
+
+      - name: Install Android SDK packages
         run: |
-          SDKMANAGER="$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager not found"
+            exit 1
+          fi
+
           yes | "$SDKMANAGER" --licenses || true
-          "$SDKMANAGER" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0" 
-          
+
+          "$SDKMANAGER" --install \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+
       - name: Extract Nangarhar project
         run: |
           mkdir -p extracted
           unzip -q Nangarhar.zip -d extracted
+
       - name: Find Android project
-        id: project
         shell: bash
         run: |
           FILE=$(find extracted -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)
+
           if [ -z "$FILE" ]; then
             echo "Gradle project not found"
             exit 1
           fi
+
           echo "PROJECT_DIR=$(dirname "$FILE")" >> "$GITHUB_ENV"
+
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
+
           if [ -f gradlew ]; then
             chmod +x gradlew
             ./gradlew assembleDebug
           else
             gradle assembleDebug
           fi
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:

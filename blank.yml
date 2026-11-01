@@ -1,50 +1,106 @@
-name: Build Nangarhar APK
+maseerbaryal2020-hub/Dr-Maseer-Baryal-Safi-App
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
+66
+
+<> Code Issues 11 Pull requests Agents Actions Projects Wiki
+
+Security and quality
+
+Dr-Maseer-Baryal-Safi-App/blank.yml
+
+Cancel changes
+
+Commit changes..
+
+Spaces
+
+2
+
+Edit Preview
+
+main
+
+More
+
+Build Nangarhar APK
+
+push:
+
+No wrap
+
+branches: [ "main" ]
+
+pull_request:
+
+branches: [ "main" ]
+
+workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+build:
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: '17'
+runs-on: ubuntu-latest
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+steps:
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
+nane: Checkout repository
 
-      - name: Extract Nangarhar project
-        run: |
-          unzip -q Nangarhar.zip -d extracted
+uses: actions/checkout@vs
 
-      - name: Find Android project
-        run: |
-          PROJECT=$(dirname "$(find extracted -name settings.gradle.kts -o -name settings.gradle | head -n 1)")
-          echo "PROJECT_DIR=$PROJECT" >> $GITHUB_ENV
+nane: Set Java 17
 
-      - name: Build APK
-        run: |
-          cd "$PROJECT_DIR"
-          gradle assembleDebug
+uses: actions/setup-java@v5
+
+with:
+
+distribution: temurin
+
+java-version: "17"
+
+nane: Set up Android SDK
+
+uses: android-actions/setup-android@v3
+
+name: Set up Gradle
+
+uses: gradle/actions/setup-gradle@v4
+
+with:
+
+gradle-version: 8.9"
+
+name: Extract Nangarhar project
+
+run: |
+
+unzip -q Nangarhar.zip -d extracted
+
+nane: Find Android project
+
+run: 1
+
+PROJECT $(dirname "$(find extracted -name settings.gradle.kts -nase settings.gradle head -n 1)")
+
+echo "PROJECT_DIR=SPROJECT SGITHUB ENV
+
+nane: Build APK
+
+run: 1
+
+cd "$PROJECT DIR"
+
+gradle assembleDebug
+
+- name: Upload APK
+
+uses: actions/upload-artifact@vd
+
+with:
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Nangarhar-APK
-          path: extracted/**/build/outputs/apk/debug/*.apk
+          name: Dr-Maseer-Baryal-Safi-Official-App
+          path: extracted/**/build/outputs/apk/**/*.apk
+          if-no-files-found: error

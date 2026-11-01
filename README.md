@@ -1,9 +1,10 @@
-name: Build Nangarhar APK
+name: Dr Maseer Baryal Safi Official App
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,48 +14,68 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Extract ZIP
-        run: unzip -o Nangarhar.zip -d extracted
-
-      - name: Setup Java
-        uses: actions/setup-java@v5
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Install Android SDK
         run: |
-          SDK="$ANDROID_HOME"
-          SDKMANAGER=$(find "$SDK/cmdline-tools" -name sdkmanager | head -1)
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
           yes | "$SDKMANAGER" --licenses || true
-          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          "$SDKMANAGER" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Setup Gradle
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: "8.9"
 
-      - name: Find Project
-        id: project
+      - name: Extract Nangarhar project
         run: |
-          FILE=$(find extracted -name settings.gradle.kts -o -name settings.gradle | head -1)
+          mkdir -p extracted
+          unzip -q Nangarhar.zip -d extracted
+
+      - name: Find Android project
+        shell: bash
+        run: |
+          FILE=$(find extracted -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)
           if [ -z "$FILE" ]; then
             echo "Gradle project not found"
             exit 1
           fi
-          echo "dir=$(dirname "$FILE")" >> "$GITHUB_OUTPUT"
+          echo "PROJECT_DIR=$(dirname "$FILE")" >> "$GITHUB_ENV"
+
+      - name: Align Java and Kotlin targets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          for p in list(Path("extracted").rglob("build.gradle")) + list(Path("extracted").rglob("build.gradle.kts")):
+              s = p.read_text()
+              s = s.replace("VERSION_1_8", "VERSION_17")
+              s = s.replace("JVM_1_8", "JVM_17")
+              s = re.sub(r'((?:sourceCompatibility|targetCompatibility|jvmTarget)\s*=\s*["\'])1\.8(["\'])', r'\g<1>17\2', s)
+              p.write_text(s)
+          PY
 
       - name: Build APK
         run: |
-          cd "${{ steps.project.outputs.dir }}"
-          gradle assembleDebug
+          cd "$PROJECT_DIR"
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          else
+            gradle assembleDebug
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Nangarhar-APK
+          name: Dr-Maseer-Baryal-Safi-Official-App
           path: extracted/**/build/outputs/apk/**/*.apk
           if-no-files-found: error
